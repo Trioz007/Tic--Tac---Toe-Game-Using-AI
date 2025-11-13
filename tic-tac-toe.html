@@ -1,0 +1,987 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎮</text></svg>">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect x='30' y='0' width='5' height='100' fill='%23333'/><rect x='65' y='0' width='5' height='100' fill='%23333'/><rect x='0' y='30' width='100' height='5' fill='%23333'/><rect x='0' y='65' width='100' height='5' fill='%23333'/></svg>">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    animation: {
+                        'pop-in': 'popIn 0.3s ease-out',
+                        'bounce-gentle': 'bounceGentle 0.5s ease-in-out',
+                        'pulse-glow': 'pulseGlow 2s infinite',
+                        'float': 'float 6s ease-in-out infinite',
+                        'shimmer': 'shimmer 2s ease-in-out infinite',
+                        'cursor-glow': 'cursorGlow 2s ease-in-out infinite'
+                    },
+                    keyframes: {
+                        popIn: {
+                            '0%': { transform: 'scale(0.5)', opacity: '0' },
+                            '100%': { transform: 'scale(1)', opacity: '1' }
+                        },
+                        bounceGentle: {
+                            '0%, 100%': { transform: 'scale(1)' },
+                            '50%': { transform: 'scale(1.05)' }
+                        },
+                        pulseGlow: {
+                            '0%, 100%': { boxShadow: '0 0 5px rgba(59, 130, 246, 0.5)' },
+                            '50%': { boxShadow: '0 0 20px rgba(59, 130, 246, 0.8)' }
+                        },
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0px)' },
+                            '50%': { transform: 'translateY(-10px)' }
+                        },
+                        shimmer: {
+                            '0%': { backgroundPosition: '-500px 0' },
+                            '100%': { backgroundPosition: '500px 0' }
+                        },
+                        cursorGlow: {
+                            '0%, 100%': { 
+                                filter: 'drop-shadow(0 0 5px rgba(255,255,255,0.5))',
+                                transform: 'scale(1)'
+                            },
+                            '50%': { 
+                                filter: 'drop-shadow(0 0 15px rgba(255,255,255,0.8))',
+                                transform: 'scale(1.1)'
+                            }
+                        }
+                    },
+                    backdropBlur: {
+                        xs: '2px',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom cursor and glass effects */
+        body {
+            overflow-x: hidden;
+            touch-action: manipulation; /* Prevent zoom on double-tap */
+        }
+        
+        /* Only show custom cursor on desktop */
+        @media (min-width: 768px) {
+            body {
+                cursor: none;
+            }
+        }
+        
+        .custom-cursor {
+            position: fixed;
+            width: 20px;
+            height: 20px;
+            background: radial-gradient(circle, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 70%);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9999;
+            mix-blend-mode: screen;
+            animation: cursorGlow 2s ease-in-out infinite;
+        }
+        
+        .cursor-trail {
+            position: fixed;
+            width: 8px;
+            height: 8px;
+            background: radial-gradient(circle, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0) 70%);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9998;
+            mix-blend-mode: screen;
+        }
+        
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+        }
+        
+        .glass-card {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.2);
+        }
+        
+        .glass-button {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+        
+        .glass-button:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+        
+        .floating-particle {
+            position: absolute;
+            background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 70%);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+        
+        /* Background animation */
+        @keyframes backgroundShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        .animated-bg {
+            background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+            background-size: 400% 400%;
+            animation: backgroundShift 15s ease infinite;
+        }
+        
+        /* Text glow effect */
+        .text-glow {
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.5),
+                         0 0 20px rgba(255, 255, 255, 0.3),
+                         0 0 30px rgba(255, 255, 255, 0.1);
+        }
+        
+        /* Remove default cursor for interactive elements on desktop */
+        @media (min-width: 768px) {
+            button, .cell {
+                cursor: none;
+            }
+        }
+        
+        /* Mobile-specific adjustments */
+        @media (max-width: 640px) {
+            .mobile-padding {
+                padding: 1rem;
+            }
+            
+            .mobile-text-lg {
+                font-size: 1.125rem;
+            }
+            
+            .mobile-text-xl {
+                font-size: 1.25rem;
+            }
+            
+            .mobile-text-2xl {
+                font-size: 1.5rem;
+            }
+            
+            .mobile-text-3xl {
+                font-size: 1.875rem;
+            }
+            
+            .mobile-flex-col {
+                flex-direction: column;
+            }
+            
+            .mobile-gap-2 {
+                gap: 0.5rem;
+            }
+            
+            .mobile-gap-4 {
+                gap: 1rem;
+            }
+            
+            .mobile-mb-4 {
+                margin-bottom: 1rem;
+            }
+            
+            .mobile-mb-6 {
+                margin-bottom: 1.5rem;
+            }
+            
+            .mobile-p-4 {
+                padding: 1rem;
+            }
+            
+            .mobile-p-6 {
+                padding: 1.5rem;
+            }
+            
+            .mobile-py-2 {
+                padding-top: 0.5rem;
+                padding-bottom: 0.5rem;
+            }
+            
+            .mobile-py-3 {
+                padding-top: 0.75rem;
+                padding-bottom: 0.75rem;
+            }
+            
+            .mobile-py-4 {
+                padding-top: 1rem;
+                padding-bottom: 1rem;
+            }
+            
+            .mobile-px-3 {
+                padding-left: 0.75rem;
+                padding-right: 0.75rem;
+            }
+            
+            .mobile-px-4 {
+                padding-left: 1rem;
+                padding-right: 1rem;
+            }
+            
+            .mobile-rounded-lg {
+                border-radius: 0.5rem;
+            }
+            
+            .mobile-rounded-xl {
+                border-radius: 0.75rem;
+            }
+            
+            .mobile-rounded-2xl {
+                border-radius: 1rem;
+            }
+            
+            .mobile-rounded-3xl {
+                border-radius: 1.5rem;
+            }
+            
+            .mobile-h-16 {
+                height: 4rem;
+            }
+            
+            .mobile-h-20 {
+                height: 5rem;
+            }
+            
+            .mobile-w-full {
+                width: 100%;
+            }
+            
+            .mobile-grid-cols-3 {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
+            
+            .mobile-gap-2 {
+                gap: 0.5rem;
+            }
+            
+            .mobile-text-sm {
+                font-size: 0.875rem;
+            }
+            
+            .mobile-text-base {
+                font-size: 1rem;
+            }
+            
+            .mobile-text-lg {
+                font-size: 1.125rem;
+            }
+            
+            .mobile-text-xl {
+                font-size: 1.25rem;
+            }
+            
+            .mobile-text-2xl {
+                font-size: 1.5rem;
+            }
+            
+            .mobile-text-3xl {
+                font-size: 1.875rem;
+            }
+            
+            .mobile-text-4xl {
+                font-size: 2.25rem;
+            }
+        }
+    </style>
+</head>
+<body class="animated-bg min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
+    <!-- Custom Cursor (Desktop only) -->
+    <div class="custom-cursor hidden md:block"></div>
+    
+    <!-- Background Particles -->
+    <div id="particles-container" class="absolute inset-0 pointer-events-none"></div>
+    
+    <!-- Main Container -->
+    <div class="max-w-md w-full glass-effect rounded-3xl mobile-rounded-2xl shadow-2xl overflow-hidden border border-white/20 relative">
+        <!-- Animated Background Overlay -->
+        <div class="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-indigo-700/10 backdrop-blur-xs"></div>
+        
+        <!-- Header -->
+        <div class="bg-gradient-to-r from-purple-600/40 to-indigo-600/40 p-6 mobile-p-4 text-center relative z-10 border-b border-white/10">
+            <h1 class="text-3xl mobile-text-2xl font-bold text-white mb-2 text-glow animate-float">Tic Tac Toe</h1>
+            <p class="text-purple-200/80 text-glow mobile-text-sm">Player vs Computer</p>
+        </div>
+        
+        <!-- Game Setup -->
+        <div id="game-setup" class="p-6 mobile-p-4 border-b border-white/10 relative z-10">
+            <h2 class="text-xl mobile-text-lg font-bold text-center mb-6 mobile-mb-4 text-white text-glow">Game Setup</h2>
+            
+            <!-- Difficulty Selection -->
+            <div class="mb-8 mobile-mb-6">
+                <h3 class="text-lg mobile-text-base font-semibold text-white/90 mb-4 mobile-mb-3 text-center text-glow">Select Difficulty Level</h3>
+                <div class="grid grid-cols-3 gap-3 mobile-gap-2 mb-2">
+                    <button id="easy-mode" class="difficulty-btn glass-button text-white font-semibold py-3 mobile-py-2 px-4 mobile-px-3 rounded-xl mobile-rounded-lg transition-all duration-300 transform hover:scale-105 flex flex-col items-center justify-center gap-1">
+                        <i class="fas fa-robot text-xl mobile-text-lg"></i>
+                        <span class="mobile-text-sm">Easy</span>
+                        <small class="text-white/70 text-xs mobile-text-xs">Random Moves</small>
+                    </button>
+                    <button id="medium-mode" class="difficulty-btn glass-button text-white font-semibold py-3 mobile-py-2 px-4 mobile-px-3 rounded-xl mobile-rounded-lg transition-all duration-300 transform hover:scale-105 flex flex-col items-center justify-center gap-1">
+                        <i class="fas fa-brain text-xl mobile-text-lg"></i>
+                        <span class="mobile-text-sm">Medium</span>
+                        <small class="text-white/70 text-xs mobile-text-xs">Smart & Random</small>
+                    </button>
+                    <button id="hard-mode" class="difficulty-btn glass-button text-white font-semibold py-3 mobile-py-2 px-4 mobile-px-3 rounded-xl mobile-rounded-lg transition-all duration-300 transform hover:scale-105 flex flex-col items-center justify-center gap-1">
+                        <i class="fas fa-chess-king text-xl mobile-text-lg"></i>
+                        <span class="mobile-text-sm">Hard</span>
+                        <small class="text-white/70 text-xs mobile-text-xs">Strategic AI</small>
+                    </button>
+                </div>
+                <div id="difficulty-info" class="text-center text-sm mobile-text-xs text-white/70 glass-card p-2 mobile-p-1 rounded-lg mobile-rounded-md">
+                    <span id="selected-difficulty" class="font-semibold text-white">Medium</span> level selected
+                </div>
+            </div>
+            
+            <!-- Player Symbol Selection -->
+            <div class="mb-6 mobile-mb-4">
+                <h3 class="text-lg mobile-text-base font-semibold text-white/90 mb-4 mobile-mb-3 text-center text-glow">Choose Your Symbol</h3>
+                <div class="flex gap-4 mobile-gap-2 mobile-flex-col">
+                    <button id="choose-x" class="symbol-btn glass-button text-white font-bold py-4 mobile-py-3 px-4 mobile-px-3 rounded-xl mobile-rounded-lg transition-all duration-300 transform hover:scale-105 flex flex-col items-center justify-center gap-2 mobile-gap-1">
+                        <i class="fas fa-times text-3xl mobile-text-2xl text-red-300"></i>
+                        <span class="text-lg mobile-text-base">Play as X</span>
+                        <small class="text-white/70 mobile-text-xs">(You go first)</small>
+                    </button>
+                    <button id="choose-o" class="symbol-btn glass-button text-white font-bold py-4 mobile-py-3 px-4 mobile-px-3 rounded-xl mobile-rounded-lg transition-all duration-300 transform hover:scale-105 flex flex-col items-center justify-center gap-2 mobile-gap-1">
+                        <i class="far fa-circle text-3xl mobile-text-2xl text-blue-300"></i>
+                        <span class="text-lg mobile-text-base">Play as O</span>
+                        <small class="text-white/70 mobile-text-xs">(Computer goes first)</small>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Start Button -->
+            <button id="start-game-btn" class="w-full glass-button text-white font-bold py-4 mobile-py-3 px-4 mobile-px-3 rounded-xl mobile-rounded-lg transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-2 text-lg mobile-text-base animate-pulse">
+                <i class="fas fa-play"></i>
+                Start Game
+            </button>
+        </div>
+        
+        <!-- Game Info -->
+        <div id="game-info" class="p-6 mobile-p-4 border-b border-white/10 relative z-10 hidden">
+            <div class="flex justify-between items-center mb-4 mobile-mb-3 mobile-flex-col mobile-gap-3">
+                <div class="text-center flex-1 mobile-w-full">
+                    <p class="text-sm mobile-text-xs text-white/70">Current Player</p>
+                    <div id="current-player" class="text-2xl mobile-text-xl font-bold text-white mt-1 text-glow">
+                        <i class="fas fa-times text-red-300"></i> X
+                    </div>
+                </div>
+                <div class="text-center flex-1 mobile-w-full">
+                    <p class="text-sm mobile-text-xs text-white/70">Game Status</p>
+                    <div id="game-status" class="text-lg mobile-text-base font-semibold text-white mt-1 text-glow">Your Turn</div>
+                </div>
+            </div>
+            
+            <!-- Difficulty Display -->
+            <div class="text-center mb-4 mobile-mb-3">
+                <p class="text-sm mobile-text-xs text-white/70">Difficulty</p>
+                <div id="current-difficulty" class="text-md mobile-text-base font-semibold text-white text-glow">Medium</div>
+            </div>
+            
+            <!-- Score Board -->
+            <div class="flex justify-around glass-card rounded-xl mobile-rounded-lg p-3 mobile-p-2 mt-2">
+                <div class="text-center">
+                    <p class="text-sm mobile-text-xs text-white/70">Player</p>
+                    <div class="text-xl mobile-text-lg font-bold text-green-300 text-glow" id="score-player">0</div>
+                </div>
+                <div class="text-center">
+                    <p class="text-sm mobile-text-xs text-white/70">Draws</p>
+                    <div class="text-xl mobile-text-lg font-bold text-yellow-300 text-glow" id="score-draw">0</div>
+                </div>
+                <div class="text-center">
+                    <p class="text-sm mobile-text-xs text-white/70">Computer</p>
+                    <div class="text-xl mobile-text-lg font-bold text-red-300 text-glow" id="score-computer">0</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Game Board -->
+        <div id="game-board-container" class="p-6 mobile-p-4 hidden relative z-10">
+            <div id="game-board" class="grid grid-cols-3 gap-3 mobile-gap-2 glass-card p-3 mobile-p-2 rounded-2xl mobile-rounded-xl shadow-lg max-w-xs mx-auto w-full">
+                <!-- Game cells will be generated by JavaScript -->
+            </div>
+        </div>
+        
+        <!-- Controls -->
+        <div id="game-controls" class="p-6 mobile-p-4 border-t border-white/10 hidden relative z-10">
+            <div class="flex flex-col sm:flex-row gap-3 mobile-gap-2">
+                <button id="restart-btn" class="flex-1 glass-button text-white font-semibold py-3 mobile-py-2 px-4 mobile-px-3 rounded-xl mobile-rounded-lg transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-2 mobile-gap-1">
+                    <i class="fas fa-redo"></i> Restart Game
+                </button>
+                <button id="change-mode-btn" class="flex-1 glass-button text-white font-semibold py-3 mobile-py-2 px-4 mobile-px-3 rounded-xl mobile-rounded-lg transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-2 mobile-gap-1">
+                    <i class="fas fa-cog"></i> Change Settings
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Game state
+        let gameActive = true;
+        let currentPlayer = "X";
+        let gameState = ["", "", "", "", "", "", "", "", ""];
+        let scores = { player: 0, computer: 0, draw: 0 };
+        let playerSymbol = "X";
+        let computerSymbol = "O";
+        let difficulty = "medium"; // easy, medium, hard
+        let selectedSymbol = null;
+        let trails = [];
+        let trailCount = 15;
+        let isMobile = window.innerWidth < 768;
+
+        // DOM elements
+        const gameSetup = document.getElementById('game-setup');
+        const gameInfo = document.getElementById('game-info');
+        const gameBoardContainer = document.getElementById('game-board-container');
+        const gameBoard = document.getElementById('game-board');
+        const gameControls = document.getElementById('game-controls');
+        const statusDisplay = document.getElementById('game-status');
+        const currentPlayerDisplay = document.getElementById('current-player');
+        const scorePlayerDisplay = document.getElementById('score-player');
+        const scoreComputerDisplay = document.getElementById('score-computer');
+        const scoreDrawDisplay = document.getElementById('score-draw');
+        const restartButton = document.getElementById('restart-btn');
+        const changeModeButton = document.getElementById('change-mode-btn');
+        const chooseXButton = document.getElementById('choose-x');
+        const chooseOButton = document.getElementById('choose-o');
+        const easyModeButton = document.getElementById('easy-mode');
+        const mediumModeButton = document.getElementById('medium-mode');
+        const hardModeButton = document.getElementById('hard-mode');
+        const startGameButton = document.getElementById('start-game-btn');
+        const selectedDifficultyDisplay = document.getElementById('selected-difficulty');
+        const currentDifficultyDisplay = document.getElementById('current-difficulty');
+        const difficultyInfo = document.getElementById('difficulty-info');
+
+        // Initialize custom cursor and effects
+        function initializeEffects() {
+            // Only create cursor trail on desktop
+            if (!isMobile) {
+                // Create cursor trail elements
+                for (let i = 0; i < trailCount; i++) {
+                    const trail = document.createElement('div');
+                    trail.className = 'cursor-trail';
+                    trail.style.opacity = '0';
+                    document.body.appendChild(trail);
+                    trails.push({
+                        element: trail,
+                        x: 0,
+                        y: 0,
+                        timer: 0
+                    });
+                }
+
+                // Mouse move event for cursor and trail
+                document.addEventListener('mousemove', (e) => {
+                    const cursor = document.querySelector('.custom-cursor');
+                    cursor.style.left = e.clientX + 'px';
+                    cursor.style.top = e.clientY + 'px';
+
+                    // Update trail with delay
+                    trails.forEach((trail, index) => {
+                        setTimeout(() => {
+                            trail.element.style.left = e.clientX + 'px';
+                            trail.element.style.top = e.clientY + 'px';
+                            trail.element.style.opacity = '1';
+                            
+                            setTimeout(() => {
+                                trail.element.style.opacity = '0';
+                            }, 100);
+                        }, index * 30);
+                    });
+                });
+
+                // Add hover effects for interactive elements
+                const interactiveElements = document.querySelectorAll('button, .cell');
+                interactiveElements.forEach(element => {
+                    element.addEventListener('mouseenter', () => {
+                        document.querySelector('.custom-cursor').style.transform = 'scale(1.5)';
+                    });
+                    element.addEventListener('mouseleave', () => {
+                        document.querySelector('.custom-cursor').style.transform = 'scale(1)';
+                    });
+                });
+            }
+
+            // Create background particles
+            createParticles();
+        }
+
+        // Create background particles
+        function createParticles() {
+            const container = document.getElementById('particles-container');
+            const particleCount = isMobile ? 8 : 15;
+            
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'floating-particle';
+                
+                // Random properties
+                const size = Math.random() * (isMobile ? 40 : 60) + (isMobile ? 10 : 20);
+                const duration = Math.random() * 20 + 10;
+                const delay = Math.random() * 5;
+                const left = Math.random() * 100;
+                
+                particle.style.width = `${size}px`;
+                particle.style.height = `${size}px`;
+                particle.style.left = `${left}vw`;
+                particle.style.top = `${Math.random() * 100}vh`;
+                particle.style.animation = `float ${duration}s ease-in-out ${delay}s infinite`;
+                particle.style.opacity = Math.random() * 0.3 + 0.1;
+                
+                container.appendChild(particle);
+            }
+        }
+
+        // Winning conditions
+        const winningConditions = [
+            [0, 1, 2], [3, 4, 5], [6, 7, 8], // rows
+            [0, 3, 6], [1, 4, 7], [2, 5, 8], // columns
+            [0, 4, 8], [2, 4, 6]             // diagonals
+        ];
+
+        // Messages
+        const winningMessage = (player) => {
+            if (player === playerSymbol) {
+                return "You Win! 🎉";
+            } else {
+                return "Computer Wins! 🤖";
+            }
+        };
+        const drawMessage = () => "Game Ended in a Draw! 🤝";
+        const currentPlayerTurn = () => {
+            if (currentPlayer === playerSymbol) {
+                return "Your Turn";
+            } else {
+                return "Computer's Turn";
+            }
+        };
+
+        // Initialize the game board
+        function initializeGameBoard() {
+            gameBoard.innerHTML = '';
+            for (let i = 0; i < 9; i++) {
+                const cell = document.createElement('div');
+                cell.classList.add(
+                    'cell', 'glass-card', 'rounded-xl', 'mobile-rounded-lg', 'shadow-md', 
+                    'h-24', 'mobile-h-20', 'flex', 'items-center', 'justify-center',
+                    'text-4xl', 'mobile-text-3xl', 'font-bold',
+                    'transition-all', 'duration-300', 'transform',
+                    'hover:scale-110', 'hover:bg-white/10',
+                    'active:scale-95'
+                );
+                cell.setAttribute('data-cell-index', i);
+                cell.addEventListener('click', handleCellClick);
+                // Add touch event for mobile
+                cell.addEventListener('touchstart', handleCellTouch, { passive: false });
+                gameBoard.appendChild(cell);
+            }
+        }
+
+        // Handle touch events for mobile
+        function handleCellTouch(e) {
+            e.preventDefault();
+            const clickedCell = e.currentTarget;
+            const clickedCellIndex = parseInt(clickedCell.getAttribute('data-cell-index'));
+            
+            // If it's computer's turn, ignore player click
+            if (currentPlayer === computerSymbol || !gameActive) {
+                return;
+            }
+            
+            // Check if cell is already played
+            if (gameState[clickedCellIndex] !== "") {
+                return;
+            }
+
+            // Play the move
+            handleCellPlayed(clickedCell, clickedCellIndex);
+            
+            // Check for win or draw
+            const gameOver = handleResultValidation();
+            
+            // If game is not over, let computer play
+            if (!gameOver && gameActive) {
+                setTimeout(makeComputerMove, 800);
+            }
+        }
+
+        // Start the game
+        function startGame() {
+            if (!selectedSymbol) {
+                alert("Please select your symbol first!");
+                return;
+            }
+            
+            playerSymbol = selectedSymbol;
+            computerSymbol = selectedSymbol === "X" ? "O" : "X";
+            
+            // Hide setup, show game components
+            gameSetup.classList.add('hidden');
+            gameInfo.classList.remove('hidden');
+            gameBoardContainer.classList.remove('hidden');
+            gameControls.classList.remove('hidden');
+            
+            // Initialize game state
+            gameActive = true;
+            gameState = ["", "", "", "", "", "", "", "", ""];
+            
+            // Set initial player
+            currentPlayer = "X"; // X always starts
+            
+            // Update displays
+            updatePlayerDisplay();
+            statusDisplay.textContent = currentPlayerTurn();
+            currentDifficultyDisplay.textContent = getDifficultyDisplayName();
+            
+            // If computer goes first, make its move
+            if (currentPlayer === computerSymbol) {
+                setTimeout(makeComputerMove, 800);
+            }
+        }
+
+        // Update player display
+        function updatePlayerDisplay() {
+            if (currentPlayer === "X") {
+                currentPlayerDisplay.innerHTML = '<i class="fas fa-times text-red-300"></i> X';
+            } else {
+                currentPlayerDisplay.innerHTML = '<i class="far fa-circle text-blue-300"></i> O';
+            }
+        }
+
+        // Handle cell click
+        function handleCellClick(clickedCellEvent) {
+            // If it's computer's turn, ignore player click
+            if (currentPlayer === computerSymbol || !gameActive) {
+                return;
+            }
+            
+            const clickedCell = clickedCellEvent.target;
+            const clickedCellIndex = parseInt(clickedCell.getAttribute('data-cell-index'));
+
+            // Check if cell is already played
+            if (gameState[clickedCellIndex] !== "") {
+                return;
+            }
+
+            // Play the move
+            handleCellPlayed(clickedCell, clickedCellIndex);
+            
+            // Check for win or draw
+            const gameOver = handleResultValidation();
+            
+            // If game is not over, let computer play
+            if (!gameOver && gameActive) {
+                setTimeout(makeComputerMove, 800);
+            }
+        }
+
+        // Handle cell played
+        function handleCellPlayed(clickedCell, clickedCellIndex) {
+            gameState[clickedCellIndex] = currentPlayer;
+            
+            // Add appropriate styling based on player
+            if (currentPlayer === "X") {
+                clickedCell.innerHTML = '<i class="fas fa-times text-red-300 text-glow"></i>';
+            } else {
+                clickedCell.innerHTML = '<i class="far fa-circle text-blue-300 text-glow"></i>';
+            }
+            
+            // Add animation
+            clickedCell.classList.add('animate-pop-in');
+        }
+
+        // Make computer move
+        function makeComputerMove() {
+            if (!gameActive || currentPlayer !== computerSymbol) {
+                return;
+            }
+            
+            let computerMoveIndex;
+            
+            // Different strategies based on difficulty
+            if (difficulty === "easy") {
+                computerMoveIndex = getRandomMove();
+            } else if (difficulty === "medium") {
+                // 70% chance to make a smart move, 30% random
+                computerMoveIndex = Math.random() < 0.7 ? getSmartMove() : getRandomMove();
+            } else { // hard
+                computerMoveIndex = getSmartMove();
+            }
+            
+            // Make the move
+            const cell = document.querySelector(`[data-cell-index="${computerMoveIndex}"]`);
+            handleCellPlayed(cell, computerMoveIndex);
+            
+            // Check for win or draw
+            handleResultValidation();
+        }
+
+        // Get a random available move
+        function getRandomMove() {
+            const availableMoves = [];
+            for (let i = 0; i < gameState.length; i++) {
+                if (gameState[i] === "") {
+                    availableMoves.push(i);
+                }
+            }
+            return availableMoves[Math.floor(Math.random() * availableMoves.length)];
+        }
+
+        // Get a smart move (tries to win or block player)
+        function getSmartMove() {
+            // 1. Check if computer can win
+            for (let i = 0; i < winningConditions.length; i++) {
+                const [a, b, c] = winningConditions[i];
+                const line = [gameState[a], gameState[b], gameState[c]];
+                
+                // If computer has two in a row and the third is empty
+                if (line.filter(cell => cell === computerSymbol).length === 2 && line.includes("")) {
+                    const emptyIndex = line.indexOf("");
+                    return winningConditions[i][emptyIndex];
+                }
+            }
+            
+            // 2. Check if player can win and block them
+            for (let i = 0; i < winningConditions.length; i++) {
+                const [a, b, c] = winningConditions[i];
+                const line = [gameState[a], gameState[b], gameState[c]];
+                
+                // If player has two in a row and the third is empty
+                if (line.filter(cell => cell === playerSymbol).length === 2 && line.includes("")) {
+                    const emptyIndex = line.indexOf("");
+                    return winningConditions[i][emptyIndex];
+                }
+            }
+            
+            // 3. Take center if available
+            if (gameState[4] === "") {
+                return 4;
+            }
+            
+            // 4. Take a corner if available
+            const corners = [0, 2, 6, 8];
+            const availableCorners = corners.filter(index => gameState[index] === "");
+            if (availableCorners.length > 0) {
+                return availableCorners[Math.floor(Math.random() * availableCorners.length)];
+            }
+            
+            // 5. Take any available side
+            const sides = [1, 3, 5, 7];
+            const availableSides = sides.filter(index => gameState[index] === "");
+            if (availableSides.length > 0) {
+                return availableSides[Math.floor(Math.random() * availableSides.length)];
+            }
+            
+            // Fallback to random move (shouldn't happen if board isn't full)
+            return getRandomMove();
+        }
+
+        // Handle player change
+        function handlePlayerChange() {
+            currentPlayer = currentPlayer === "X" ? "O" : "X";
+            statusDisplay.textContent = currentPlayerTurn();
+            updatePlayerDisplay();
+            
+            // Add animation to current player display
+            currentPlayerDisplay.classList.add('animate-bounce-gentle');
+            setTimeout(() => {
+                currentPlayerDisplay.classList.remove('animate-bounce-gentle');
+            }, 500);
+        }
+
+        // Handle result validation
+        function handleResultValidation() {
+            let roundWon = false;
+            let winningCombo = [];
+
+            // Check for winning conditions
+            for (let i = 0; i < winningConditions.length; i++) {
+                const [a, b, c] = winningConditions[i];
+                if (gameState[a] && gameState[a] === gameState[b] && gameState[a] === gameState[c]) {
+                    roundWon = true;
+                    winningCombo = winningConditions[i];
+                    break;
+                }
+            }
+
+            // If round is won
+            if (roundWon) {
+                statusDisplay.textContent = winningMessage(currentPlayer);
+                statusDisplay.classList.add('font-bold');
+                
+                if (currentPlayer === playerSymbol) {
+                    statusDisplay.classList.add('text-green-300');
+                } else {
+                    statusDisplay.classList.add('text-red-300');
+                }
+                
+                gameActive = false;
+                
+                // Highlight winning cells
+                winningCombo.forEach(index => {
+                    const cell = document.querySelector(`[data-cell-index="${index}"]`);
+                    cell.classList.add('bg-green-500/20', 'animate-pulse-glow');
+                });
+                
+                // Update scores
+                if (currentPlayer === playerSymbol) {
+                    scores.player++;
+                } else {
+                    scores.computer++;
+                }
+                updateScoreDisplay();
+                
+                return true; // Game over
+            }
+
+            // Check for draw
+            const roundDraw = !gameState.includes("");
+            if (roundDraw) {
+                statusDisplay.textContent = drawMessage();
+                statusDisplay.classList.add('font-bold', 'text-yellow-300');
+                gameActive = false;
+                
+                // Update scores
+                scores.draw++;
+                updateScoreDisplay();
+                
+                return true; // Game over
+            }
+
+            // Continue game with next player
+            handlePlayerChange();
+            return false; // Game continues
+        }
+
+        // Update score display
+        function updateScoreDisplay() {
+            scorePlayerDisplay.textContent = scores.player;
+            scoreComputerDisplay.textContent = scores.computer;
+            scoreDrawDisplay.textContent = scores.draw;
+        }
+
+        // Restart game
+        function handleRestartGame() {
+            gameActive = true;
+            gameState = ["", "", "", "", "", "", "", "", ""];
+            currentPlayer = "X"; 
+            
+            // Update displays
+            updatePlayerDisplay();
+            statusDisplay.textContent = currentPlayerTurn();
+            statusDisplay.classList.remove('font-bold', 'text-green-300', 'text-yellow-300', 'text-red-300');
+            
+            // Clear board
+            document.querySelectorAll('.cell').forEach(cell => {
+                cell.innerHTML = '';
+                cell.classList.remove(
+                    'bg-green-500/20', 'animate-pulse-glow',
+                    'animate-pop-in'
+                );
+            });
+            
+            // If computer goes first, make its move
+            if (currentPlayer === computerSymbol) {
+                setTimeout(makeComputerMove, 800);
+            }
+        }
+
+        // Change game mode (back to setup)
+        function handleChangeMode() {
+            // Hide game components, show setup
+            gameInfo.classList.add('hidden');
+            gameBoardContainer.classList.add('hidden');
+            gameControls.classList.add('hidden');
+            gameSetup.classList.remove('hidden');
+        }
+
+        // Set difficulty
+        function setDifficulty(level) {
+            difficulty = level;
+            selectedDifficultyDisplay.textContent = getDifficultyDisplayName();
+            
+            // Update button styles
+            document.querySelectorAll('.difficulty-btn').forEach(btn => {
+                btn.classList.remove('ring-4', 'ring-opacity-50', 'ring-white');
+            });
+            
+            if (level === 'easy') {
+                easyModeButton.classList.add('ring-4', 'ring-green-300', 'ring-opacity-50');
+            } else if (level === 'medium') {
+                mediumModeButton.classList.add('ring-4', 'ring-yellow-300', 'ring-opacity-50');
+            } else {
+                hardModeButton.classList.add('ring-4', 'ring-red-300', 'ring-opacity-50');
+            }
+        }
+
+        // Get display name for difficulty
+        function getDifficultyDisplayName() {
+            switch(difficulty) {
+                case 'easy': return 'Easy';
+                case 'medium': return 'Medium';
+                case 'hard': return 'Hard';
+                default: return 'Medium';
+            }
+        }
+
+        // Select symbol
+        function selectSymbol(symbol) {
+            selectedSymbol = symbol;
+            
+            // Update button styles
+            document.querySelectorAll('.symbol-btn').forEach(btn => {
+                btn.classList.remove('ring-4', 'ring-opacity-50', 'ring-white');
+            });
+            
+            if (symbol === 'X') {
+                chooseXButton.classList.add('ring-4', 'ring-red-300', 'ring-opacity-50');
+            } else {
+                chooseOButton.classList.add('ring-4', 'ring-blue-300', 'ring-opacity-50');
+            }
+        }
+
+        // Handle window resize
+        function handleResize() {
+            isMobile = window.innerWidth < 768;
+            
+            // Show/hide cursor based on screen size
+            const cursor = document.querySelector('.custom-cursor');
+            if (isMobile) {
+                cursor.style.display = 'none';
+            } else {
+                cursor.style.display = 'block';
+            }
+        }
+
+        // Event listeners
+        chooseXButton.addEventListener('click', () => selectSymbol("X"));
+        chooseOButton.addEventListener('click', () => selectSymbol("O"));
+        startGameButton.addEventListener('click', startGame);
+        restartButton.addEventListener('click', handleRestartGame);
+        changeModeButton.addEventListener('click', handleChangeMode);
+        easyModeButton.addEventListener('click', () => setDifficulty('easy'));
+        mediumModeButton.addEventListener('click', () => setDifficulty('medium'));
+        hardModeButton.addEventListener('click', () => setDifficulty('hard'));
+        window.addEventListener('resize', handleResize);
+
+        // Initialize the game
+        initializeGameBoard();
+        initializeEffects();
+        setDifficulty('medium'); 
+        selectSymbol('X'); 
+        handleResize(); 
+    </script>
+</body>
+</html>
